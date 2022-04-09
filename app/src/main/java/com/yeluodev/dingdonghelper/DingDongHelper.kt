@@ -26,9 +26,11 @@ class DingDongHelper : AccessibilityService() {
 
         //叮咚送达时间半窗
         const val CHOOSE_DELIVERY_TIME = "gy"
+        const val CHOOSE_DELIVERY_TIME_v2 = "iy"
 
         //重新加载和返回购物车弹窗
         const val GX0 = "gx0"
+        const val DY = "dy"
 
         //下单失败，送达时间已抢光
         const val XV0 = "xv0"
@@ -45,7 +47,7 @@ class DingDongHelper : AccessibilityService() {
     var currentClassName: String = ""
     var chooseTimeSuccess: Boolean = false
     var enableJumpCart: Boolean = true
-    var checkNotificationCount: Int = 0;
+    var checkNotificationCount: Int = 0
     var enableAutoRefresh = true
     var job: Job? = null
 
@@ -61,8 +63,9 @@ class DingDongHelper : AccessibilityService() {
                 HOME_ACTIVITY -> jumpToCart(event)
                 WRITE_ORDER_ACTIVITY -> pay(event)
                 CHOOSE_DELIVERY_TIME -> chooseDeliveryTime(event)
+                CHOOSE_DELIVERY_TIME_v2 -> chooseDeliveryTime(event)
                 GX0 -> performGlobalAction(GLOBAL_ACTION_BACK)
-//                XN1 -> checkNotification(event)
+                DY -> clickReturnCartBtn(event)
                 XV0 -> clickReturnCartBtn(event)
                 RETURN_CART_DIALOG -> clickReturnCartBtn(event)
                 else -> clickDialog(event)
@@ -270,6 +273,6 @@ class DingDongHelper : AccessibilityService() {
 
 }
 
-
+ 
 
 
