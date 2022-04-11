@@ -16,6 +16,8 @@ import kotlinx.coroutines.*
  * 2、规避频繁点击购物车 done
  * 3、购物车未刷出商品列表时如何自动下拉刷新 done
  * 4、确认订单页如何规避退出场景
+ * 5、悬浮窗工具，提供log和配置功能，方便不重新编译apk的情况下，更新脚本，并随时开启和关闭脚本
+ * 6、各类定制功能，譬如：购物车自动刷新，在选购商品补货完毕后勾选跳转确认订单页，进入生成订单并支付流程
  */
 class DingDongHelper : AccessibilityService() {
 
@@ -37,19 +39,42 @@ class DingDongHelper : AccessibilityService() {
 
         //余额支付密码输入半窗
         const val U90 = "u90"
+        const val W90 = "w90"
 
         //叮咚加载动画
         const val XN1 = "xn1"
 
         const val RETURN_CART_DIALOG = "by"
+
+        const val SCRIPT_MODE_REFRESH = 1
+        const val SCRIPT_MODE_CREATE_ORDER = 2
+
+        var SCRIPT_RUNNING_STATUS = false
+        var enableAutoRefresh = true
+        var scriptMode = SCRIPT_MODE_REFRESH
     }
 
     var currentClassName: String = ""
     var chooseTimeSuccess: Boolean = false
     var enableJumpCart: Boolean = true
     var checkNotificationCount: Int = 0
-    var enableAutoRefresh = true
+
     var job: Job? = null
+
+    /**
+     * 检查脚本是否停止，若停止再次触发
+     */
+    private var checkJob = GlobalScope.launch {
+        delay(500)
+        Log.e(TAG, "yeluo 检测脚本执行")
+        when (currentClassName) {
+            HOME_ACTIVITY -> autoRefreshCart()
+            U90 -> return@launch
+            W90 -> return@launch
+            else -> performGlobalAction(GLOBAL_ACTION_BACK)
+        }
+        Log.e(TAG, "yeluo 脚本被检测到意外终止，重新启动")
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event?.let {
@@ -59,6 +84,9 @@ class DingDongHelper : AccessibilityService() {
                 return
             }
             handleClassName(event)
+            if (!SCRIPT_RUNNING_STATUS) return
+            checkJob.cancel()
+            checkJob.start()
             when (currentClassName) {
                 HOME_ACTIVITY -> jumpToCart(event)
                 WRITE_ORDER_ACTIVITY -> pay(event)
@@ -175,7 +203,11 @@ class DingDongHelper : AccessibilityService() {
                 //若当前已在购物车tab，则尝试查找去结算按钮，点击跳转确认订单页
                 if (currentClassName == HOME_ACTIVITY && it.getChild(0)?.isSelected == true) {
                     Log.d(TAG, "yeluo 当前已选中购物车页面")
-                    jumpToCreateOrder(event)
+                    if (scriptMode == SCRIPT_MODE_REFRESH) {
+                        startAutoRefreshCart(event)
+                    } else {
+                        jumpToCreateOrder(event)
+                    }
                     return
                 }
                 it.performAction(AccessibilityNodeInfo.ACTION_CLICK)
@@ -203,15 +235,19 @@ class DingDongHelper : AccessibilityService() {
             return@forEach
         }
         if (!goodsLoaded) {
-            Log.e(TAG, "yeluo 判断enableScroll = $enableAutoRefresh")
-            if (!enableAutoRefresh) return
-            val cartListNode =
-                event.source.findAccessibilityNodeInfosByViewId("com.yaya.zone:id/list_good_car")
-            cartListNode?.forEach { _ ->
-                enableAutoRefresh = false
-                Log.d(TAG, "yeluo 滚动页面")
-                autoRefreshCart()
-            }
+            startAutoRefreshCart(event)
+        }
+    }
+
+    private fun startAutoRefreshCart(event: AccessibilityEvent) {
+        Log.e(TAG, "yeluo 判断enableScroll = $enableAutoRefresh")
+        if (!enableAutoRefresh) return
+        val cartListNode =
+            event.source.findAccessibilityNodeInfosByViewId("com.yaya.zone:id/list_good_car")
+        cartListNode?.forEach { _ ->
+            enableAutoRefresh = false
+            Log.d(TAG, "yeluo 滚动页面")
+            autoRefreshCart()
         }
     }
 
@@ -219,6 +255,7 @@ class DingDongHelper : AccessibilityService() {
      * 自动下拉刷新购物车商品列表
      */
     private fun autoRefreshCart() {
+        if (!SCRIPT_RUNNING_STATUS) return
         job?.cancel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val path = Path()
@@ -249,6 +286,7 @@ class DingDongHelper : AccessibilityService() {
             delay(500)
             enableAutoRefresh = true
             Log.e(TAG, "yeluo 延时设置可滚动enableScroll = $enableAutoRefresh")
+            autoRefreshCart()
         }
     }
 

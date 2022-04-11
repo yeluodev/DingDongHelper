@@ -22,4 +22,19 @@
     <style name="Theme.DingDongHelper.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.DingDongHelper.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="SwitchStyle" parent="Theme.AppCompat.Light">
+        <!--开启时的颜色-->
+        <item name="colorControlActivated">#CDB642</item>
+        <!--关闭时的颜色-->
+        <item name="colorSwitchThumbNormal">#FFFFFF</item>
+        <item name="colorBackgroundFloating">#161717</item>
+        <!--关闭时的轨迹颜色-->
+        <item name="android:colorForeground">#161717</item>
+    </style>
+
+    <style name="ToolboxTextStyle">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">12sp</item>
+    </style>
 </resources>

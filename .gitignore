@@ -13,3 +13,12 @@
 .externalNativeBuild
 .cxx
 local.properties
+/.idea/.gitignore
+/.idea/compiler.xml
+/app/src/androidTest/java/com/yeluodev/dingdonghelper/ExampleInstrumentedTest.kt
+/app/src/test/java/com/yeluodev/dingdonghelper/ExampleUnitTest.kt
+/.idea/gradle.xml
+/gradle/wrapper/gradle-wrapper.jar
+/gradle/wrapper/gradle-wrapper.properties
+/.idea/misc.xml
+/.idea/vcs.xml

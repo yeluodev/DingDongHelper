@@ -13,4 +13,6 @@
 
     <string name="open_accessibility">去系统设置开启无障碍功能</string>
     <string name="plugin_desc">叮咚买菜助手插件描述</string>
+    <string name="open_float_ball">开启悬浮球</string>
+    <string name="desc_float_toolbox">悬浮工具栏，配置脚本</string>
 </resources>

@@ -3,12 +3,19 @@ package com.yeluodev.dingdonghelper
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import androidx.fragment.app.Fragment
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
+import android.widget.FrameLayout
+import android.widget.RadioGroup
+import android.widget.Toast
+import androidx.appcompat.widget.SwitchCompat
+import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
+import com.lzf.easyfloat.EasyFloat
+import com.lzf.easyfloat.enums.ShowPattern
+import com.lzf.easyfloat.enums.SidePattern
 import com.yeluodev.dingdonghelper.databinding.FragmentFirstBinding
 
 /**
@@ -25,7 +32,7 @@ class FirstFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
@@ -38,6 +45,32 @@ class FirstFragment : Fragment() {
         binding.buttonFirst.setOnClickListener {
             openAccessibility(it)
         }
+        binding.btnShowFloatBall.setOnClickListener {
+            showFloatBall()
+        }
+    }
+
+    /**
+     * 展示悬浮球
+     */
+    private fun showFloatBall() {
+        EasyFloat.with(requireActivity().applicationContext)
+            .setShowPattern(ShowPattern.ALL_TIME)
+            .setSidePattern(SidePattern.RESULT_SIDE)
+            .setImmersionStatusBar(true)
+            .setGravity(Gravity.END, -20, 100)
+            .setLayout(R.layout.layout_float) {
+                it.findViewById<FrameLayout>(R.id.fl).setOnClickListener {
+                    showFloatToolbox()
+                    Toast.makeText(context, "展示悬浮工具箱", Toast.LENGTH_SHORT).show()
+                }
+                it.findViewById<FrameLayout>(R.id.fl).setOnLongClickListener {
+                    //长按取消悬浮球
+                    EasyFloat.dismiss()
+                    true
+                }
+            }
+            .show()
     }
 
     override fun onDestroyView() {
@@ -45,7 +78,7 @@ class FirstFragment : Fragment() {
         _binding = null
     }
 
-    fun openAccessibility(view: View?) {
+    private fun openAccessibility(view: View?) {
         try {
             val accessibleIntent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             startActivity(accessibleIntent)
@@ -55,5 +88,34 @@ class FirstFragment : Fragment() {
                     .setAction("Action", null).show()
             }
         }
+    }
+
+    private fun showFloatToolbox() {
+        EasyFloat.with(requireActivity().applicationContext)
+            .setTag("TOOLBOX")
+            .setShowPattern(ShowPattern.ALL_TIME)
+            .setSidePattern(SidePattern.RESULT_SIDE)
+            .setImmersionStatusBar(true)
+            .setGravity(Gravity.END, -20, 100)
+            .setLayout(R.layout.layout_float_toolbox) {
+                it.findViewById<FrameLayout>(R.id.flClose).setOnClickListener {
+                    EasyFloat.dismiss("TOOLBOX")
+                }
+                it.findViewById<SwitchCompat>(R.id.switchStatus)
+                    .setOnCheckedChangeListener { buttonView, isChecked ->
+                        DingDongHelper.SCRIPT_RUNNING_STATUS = isChecked
+                        DingDongHelper.enableAutoRefresh = true
+                    }
+                it.findViewById<RadioGroup>(R.id.radioGroup)
+                    .setOnCheckedChangeListener { buttonView, isChecked ->
+                        when (isChecked) {
+                            R.id.rbAutoRefresh -> DingDongHelper.scriptMode =
+                                DingDongHelper.SCRIPT_MODE_REFRESH
+                            else -> DingDongHelper.scriptMode =
+                                DingDongHelper.SCRIPT_MODE_CREATE_ORDER
+                        }
+                    }
+            }
+            .show()
     }
 }
